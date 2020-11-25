@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"github.com/dinuka-rp/webservice/models"
+	"github.com/dinuka-rp/webservice/controllers"
+	"net/http"
 )
 
 //	this can be run using:
@@ -12,10 +12,15 @@ import (
 //	or
 //	go run .
 func main() {
-	u := models.User{
-		ID:        2,
-		FirstName: "Tricia",
-		LastName:  "McMillan",
-	}
-	fmt.Println(u)
+	controllers.RegisterControllers()
+	http.ListenAndServe(":3000", nil) // handler passed in is a front-controller: handles all the requests received to the server.
+	// nil - use default front-controller
+
+
+	//u := models.User{
+	//	ID:        2,
+	//	FirstName: "Tricia",
+	//	LastName:  "McMillan",
+	//}
+	//fmt.Println(u)
 }
