@@ -1,5 +1,10 @@
 package models
 
+import (
+	"errors"
+	"fmt"
+)
+
 type User struct {
 	ID        int
 	FirstName string
@@ -16,10 +21,42 @@ func GetUsers() []*User {
 }
 
 func AddUser(u User) (User, error) {
+	if u.ID != 0 {
+		return User{}, errors.New("new User must not include id or it must be set to zero")
+	}
 	u.ID = nextID
 	nextID++
 	users = append(users, &u) // &u grabs a reference to the user object that was provided
 	// (because pointers to User objects are only stored in the users slice)
 
 	return u, nil
+}
+
+func GetUserByID(id int) (User, error) {
+	for _, u := range users {
+		if u.ID == id {
+			return *u, nil
+		}
+	}
+	return User{}, fmt.Errorf("user with ID '%v' not found", id)
+}
+
+func UpdateUser(u User) (User, error) {
+	for i, candidate := range users {
+		if candidate.ID == u.ID { // what does u.ID{ return u} do?
+			users[i] = &u
+			return u, nil
+		}
+	}
+	return User{}, fmt.Errorf("user with ID '%v' not found", u.ID)
+}
+
+func RemoveUserById(id int) error {
+	for i, u := range users {
+		if u.ID == id {
+			users = append(users[:i], users[i+1:]...)		// splice
+			return nil
+		}
+	}
+	return fmt.Errorf("user with ID '%v' not found", id)
 }
