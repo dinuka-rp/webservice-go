@@ -40,7 +40,7 @@ func (uc userController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			uc.get(id, w)
-		case http.MethodPost:
+		case http.MethodPut:
 			uc.put(id, w, r)
 		case http.MethodDelete:
 			uc.delete(id, w)
@@ -58,6 +58,7 @@ func (uc *userController) get(id int, w http.ResponseWriter) {
 	u, err := models.GetUserByID(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
 
