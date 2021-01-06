@@ -5,6 +5,7 @@ import (
 	"github.com/dinuka-rp/webservice/models"
 	"net/http"
 	"regexp"
+	"strconv"
 )
 
 type userController struct {
@@ -14,7 +15,39 @@ type userController struct {
 // method (basically another function)
 func (uc userController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// serve http requests and decide which method the request needs to be passed down to
-	w.Write([]byte("Hello from the User Controller!"))
+	if r.URL.Path == "/users" {
+		//	request related to multiple users
+		switch r.Method {
+		case http.MethodGet:
+			uc.getAll(w, r)
+		case http.MethodPost:
+			uc.post(w, r)
+		default:
+			w.WriteHeader(http.StatusNotImplemented)
+		}
+	} else {
+		//	 request related to one user
+		matches := uc.userIDPattern.FindStringSubmatch(r.URL.Path) // get an array of strings that match the given regular expression
+		if len(matches) == 0 {
+			// not a valid ID
+			w.WriteHeader(http.StatusNotFound)
+		}
+		id, err := strconv.Atoi(matches[1])		// convert string to a number
+		if err != nil { // check if conversion returned an error
+			w.WriteHeader(http.StatusNotImplemented)
+		}
+
+		switch r.Method {
+		case http.MethodGet:
+			uc.get(id, w)
+		case http.MethodPost:
+			uc.put(id, w, r)
+		case http.MethodDelete:
+			uc.delete(id, w)
+		default:
+			w.WriteHeader(http.StatusNotImplemented)
+		}
+	}
 }
 
 func (uc *userController) getAll(w http.ResponseWriter, r *http.Request) {
@@ -78,9 +111,9 @@ func (uc *userController) delete(id int, w http.ResponseWriter) {
 }
 
 func (uc userController) parseRequest(r *http.Request) (models.User, error) {
-	dec := json.NewDecoder(r.Body)		// create json decoder to use on request body json
+	dec := json.NewDecoder(r.Body) // create json decoder to use on request body json
 	var u models.User
-	err := dec.Decode(&u)		// decode request body json to convert it into a User object
+	err := dec.Decode(&u) // decode request body json to convert it into a User object
 	if err != nil {
 		return models.User{}, err
 	}
@@ -90,6 +123,7 @@ func (uc userController) parseRequest(r *http.Request) (models.User, error) {
 // constructor
 func newUserController() *userController {
 	return &userController{
-		userIDPattern: regexp.MustCompile(`^/users/(\d+)/?`), // regex validation
+		// regex validation
+		userIDPattern: regexp.MustCompile(`^/users/(\d+)/?`), // (\d+) is a subgroup that will be populated if there's a match to this regex
 	}
 }
